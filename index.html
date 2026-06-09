@@ -259,8 +259,8 @@ function startQuiz() {
   var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels][0];
   if (typeof gtag !== 'undefined') {
     gtag('event', 'quiz_start', {
-      uid: currentUID,
-      level: lvLabel,
+      student_id: currentUID,
+      quiz_level: lvLabel,
       question_count: questions.length
     });
   }
@@ -335,11 +335,11 @@ function showResult() {
   var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels][0];
   if (typeof gtag !== 'undefined') {
     gtag('event', 'quiz_complete', {
-      uid: currentUID,
-      level: lvLabel,
-      score: score,
-      total: total,
-      percentage: pct
+      student_id: currentUID,
+      quiz_level: lvLabel,
+      quiz_score: score,
+      quiz_total: total,
+      quiz_pct: pct
     });
   }
   document.getElementById('score-ring').textContent = pct + '%';
@@ -381,7 +381,7 @@ function renderReview() {
   // GA4: review_start event (only fire once)
   if (revIdx === 0 && total > 0 && typeof gtag !== 'undefined') {
     gtag('event', 'review_start', {
-      uid: currentUID,
+      student_id: currentUID,
       wrong_count: total
     });
   }
