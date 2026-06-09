@@ -100,6 +100,21 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ar
 .rev-sentence{font-size:15px;color:#374151;margin-top:12px;line-height:1.8;padding:12px 16px;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;margin-bottom:4px}
 .rev-sentence .hw{font-weight:800;color:#1a56db}
 </style>
+<!-- GA4 追蹤碼 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1RRLGXBYPJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-1RRLGXBYPJ');
+
+  // 讀取網址中的 UID 參數
+  function getUID() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get('uid') || 'anonymous';
+  }
+  var currentUID = getUID();
+</script>
 </head>
 <body>
 
@@ -147,6 +162,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ar
 
 <div class="screen" id="screen-quiz">
   <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+  <div id="uid-badge" style="text-align:right;font-size:12px;color:#9ca3af;margin-bottom:6px;font-weight:500"></div>
   <div class="q-meta">
     <span id="q-counter">第 1 題 / 共 10 題</span>
     <span class="q-score-badge" id="q-score">答對 0</span>
@@ -252,7 +268,19 @@ function startQuiz() {
   if (pool.length < 5) { alert('單字不足，請多選幾個 Level'); return; }
   questions = shuffle(pool.slice()).slice(0, Math.min(quizCount, pool.length));
   curQ = 0; score = 0; wrongList = [];
+  // GA4: quiz_start event
+  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels].join('+');
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'quiz_start', {
+      uid: currentUID,
+      level: lvLabel,
+      question_count: questions.length
+    });
+  }
   showScreen('screen-quiz');
+  // Show UID badge
+  var badge = document.getElementById('uid-badge');
+  if (badge) { badge.textContent = currentUID !== 'anonymous' ? '學生：' + currentUID : ''; }
   renderQ();
 }
 
@@ -316,6 +344,17 @@ function showResult() {
   showScreen('screen-result');
   var total = questions.length;
   var pct = Math.round((score / total) * 100);
+  // GA4: quiz_complete event
+  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels].join('+');
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'quiz_complete', {
+      uid: currentUID,
+      level: lvLabel,
+      score: score,
+      total: total,
+      percentage: pct
+    });
+  }
   document.getElementById('score-ring').textContent = pct + '%';
   document.getElementById('st-correct').textContent = score;
   document.getElementById('st-wrong').textContent = total - score;
@@ -352,6 +391,13 @@ function highlightWord(sentence, english) {
 
 function renderReview() {
   var total = wrongList.length;
+  // GA4: review_start event (only fire once)
+  if (revIdx === 0 && total > 0 && typeof gtag !== 'undefined') {
+    gtag('event', 'review_start', {
+      uid: currentUID,
+      wrong_count: total
+    });
+  }
   document.getElementById('rev-counter').textContent = '第 ' + (revIdx + 1) + ' 題 / 共 ' + total + ' 題錯誤';
   document.getElementById('rev-prev').disabled = (revIdx === 0);
   document.getElementById('rev-next').disabled = (revIdx === total - 1);
@@ -390,6 +436,9 @@ function restartSame() {
   questions = shuffle(pool.slice()).slice(0, Math.min(quizCount, pool.length));
   curQ = 0; score = 0; wrongList = [];
   showScreen('screen-quiz');
+  // Show UID badge
+  var badge = document.getElementById('uid-badge');
+  if (badge) { badge.textContent = currentUID !== 'anonymous' ? '學生：' + currentUID : ''; }
   renderQ();
 }
 </script>
