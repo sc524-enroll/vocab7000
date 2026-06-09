@@ -216,30 +216,17 @@ var wrongList = [];
 var revIdx = 0;
 
 function toggleLevel(btn) {
+  // 單選：先清除所有選取，再選這一個
+  document.querySelectorAll('.level-grid .btn-opt').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  selLevels.clear();
   var val = btn.dataset.val;
   if (val === 'all') {
-    if (btn.classList.contains('selected')) {
-      btn.classList.remove('selected');
-      selLevels.clear();
-    } else {
-      document.querySelectorAll('.level-grid .btn-opt').forEach(function(b){ b.classList.remove('selected'); });
-      btn.classList.add('selected');
-      selLevels.clear();
-      selLevels.add('all');
-    }
+    selLevels.add('all');
   } else {
-    document.getElementById('btn-all').classList.remove('selected');
-    selLevels.delete('all');
-    var n = parseInt(val);
-    if (btn.classList.contains('selected')) {
-      btn.classList.remove('selected');
-      selLevels.delete(n);
-    } else {
-      btn.classList.add('selected');
-      selLevels.add(n);
-    }
+    selLevels.add(parseInt(val));
   }
-  document.getElementById('start-btn').disabled = (selLevels.size === 0);
+  document.getElementById('start-btn').disabled = false;
 }
 
 function selectOne(group, btn) {
@@ -269,7 +256,7 @@ function startQuiz() {
   questions = shuffle(pool.slice()).slice(0, Math.min(quizCount, pool.length));
   curQ = 0; score = 0; wrongList = [];
   // GA4: quiz_start event
-  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels].join('+');
+  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels][0];
   if (typeof gtag !== 'undefined') {
     gtag('event', 'quiz_start', {
       uid: currentUID,
@@ -345,7 +332,7 @@ function showResult() {
   var total = questions.length;
   var pct = Math.round((score / total) * 100);
   // GA4: quiz_complete event
-  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels].join('+');
+  var lvLabel = selLevels.has('all') ? 'all' : 'Level ' + [...selLevels][0];
   if (typeof gtag !== 'undefined') {
     gtag('event', 'quiz_complete', {
       uid: currentUID,
